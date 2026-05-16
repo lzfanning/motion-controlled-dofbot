@@ -1,0 +1,166 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dofbot Wi-Fi Setup</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 16px
+    }
+
+    input, button, select {
+      font-size: 16px;
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      box-sizing: border-box
+    }
+
+    button {
+      cursor: pointer
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Dofbot Wi-Fi Setup</h1>
+  <div class="card">
+    <div id="status">Loading...</div>
+    <button onclick="refreshAll()">Refresh</button>
+    <button onclick="startHotspot()">Start Hotspot</button>
+    <button onclick="stopHotspot()">Stop Hotspot</button>
+    <button onclick="recoverWifi()">Recover Wi-Fi</button>
+  </div>
+  <div class="card">
+    <h2>Motion Receiver</h2>
+    <div id="motionStatus">Loading...</div>
+    <button onclick="startMotion()">Start Motion Mode</button>
+    <button onclick="stopMotion()">Stop Motion Mode</button>
+    <label><input id="autostartInput" type="checkbox" style="width:auto" onchange="setAutostart()"> Auto-start on boot</label>
+  </div>
+  <div class="card">
+    <h2>Connect to Wi-Fi</h2>
+    <select id="ssidSelect"></select>
+    <input id="ssidInput" placeholder="SSID">
+    <input id="passwordInput" type="password" placeholder="Password">
+    <label><input id="hiddenInput" type="checkbox" style="width:auto"> Hidden network</label>
+    <button onclick="connectWifi()">Connect</button>
+    <div id="connectResult"></div>
+  </div>
+  <div class="card">
+    <h2>Saved Networks</h2>
+    <pre id="savedNetworks"></pre>
+  </div>
+  <script>
+    async function fetchJson(url, options) {
+      const response = await fetch(url, options)
+      return await response.json()
+    }
+    async function refreshStatus() {
+      const data = await fetchJson('/wifi/status')
+      document.getElementById('status').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>'
+    }
+    async function refreshNetworks() {
+      const data = await fetchJson('/wifi/networks')
+      const select = document.getElementById('ssidSelect')
+      select.innerHTML = '<option value="">Select scanned network</option>'
+      for (const item of data.networks) {
+        const option = document.createElement('option')
+        option.value = item.ssid
+        option.textContent = item.ssid + ' (' + item.signal + '%)' + (item.security ? ' ' + item.security : '')
+        select.appendChild(option)
+      }
+    }
+    async function refreshSaved() {
+      const data = await fetchJson('/wifi/saved')
+      document.getElementById('savedNetworks').textContent = JSON.stringify(data, null, 2)
+    }
+    function selectedSsid() {
+      const picked = document.getElementById('ssidSelect').value
+      const typed = document.getElementById('ssidInput').value.trim()
+      return typed || picked
+    }
+    async function connectWifi() {
+      const payload = {
+        ssid: selectedSsid(),
+        password: document.getElementById('passwordInput').value,
+        hidden: document.getElementById('hiddenInput').checked
+      }
+      const data = await fetchJson('/wifi/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      document.getElementById('connectResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>'
+      refreshAll()
+    }
+    async function startHotspot() {
+      const data = await fetchJson('/wifi/hotspot/start', { method: 'POST' })
+      document.getElementById('connectResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>'
+      refreshAll()
+    }
+    async function stopHotspot() {
+      const data = await fetchJson('/wifi/hotspot/stop', { method: 'POST' })
+      document.getElementById('connectResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>'
+      refreshAll()
+    }
+    async function recoverWifi() {
+      const data = await fetchJson('/wifi/recover', { method: 'POST' })
+      document.getElementById('connectResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>'
+      refreshAll()
+    }
+    document.getElementById('ssidSelect').addEventListener('change', () => {
+      document.getElementById('ssidInput').value = document.getElementById('ssidSelect').value
+    })
+    async function refreshMotionStatus() {
+      const data = await fetchJson('/motion/status')
+      const el = document.getElementById('motionStatus')
+      el.textContent = data.running ? 'Running' : 'Stopped'
+      el.style.color = data.running ? '#2e7d32' : '#888'
+      el.style.fontWeight = 'bold'
+      document.getElementById('autostartInput').checked = !!data.autostart
+    }
+    async function startMotion() {
+      await fetchJson('/motion/start', { method: 'POST' })
+      refreshMotionStatus()
+    }
+    async function stopMotion() {
+      await fetchJson('/motion/stop', { method: 'POST' })
+      refreshMotionStatus()
+    }
+    async function setAutostart() {
+      const enabled = document.getElementById('autostartInput').checked
+      await fetchJson('/motion/autostart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled })
+      })
+      refreshMotionStatus()
+    }
+    async function refreshAll() {
+      await refreshStatus()
+      await refreshNetworks()
+      await refreshSaved()
+      await refreshMotionStatus()
+    }
+    refreshAll()
+  </script>
+</body>
+
+</html>

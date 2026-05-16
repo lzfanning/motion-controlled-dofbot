@@ -1,0 +1,13 @@
+"""Shared networking protocol."""
+PACKET_FORMAT = "<Iqqqfffffffffqffffqfffff"
+UDP_PORT = 56001
+
+CMD_RESET = b"RST"
+CMD_CALIBRATE = b"CAL"
+CMD_SERVO_HOLD = b"S5H"
+CMD_GRIP_CLOSE = b"GRC"
+CMD_GRIP_OPEN = b"GRO"
+CMD_RECORD = b"REC"
+CMD_ANIM_NEXT = b"ANN"
+CMD_ANIM_PREV = b"ANP"
+CMD_ANIM_DELETE = b"AND"

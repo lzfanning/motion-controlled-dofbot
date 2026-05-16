@@ -1,0 +1,10 @@
+{
+    "wifi_ssid": "Dofbot-Setup",
+    "wifi_password": "dofbotsetup",
+    "dofbot_host": "10.42.0.1",
+    "switch_pins": {
+        "mode": 18,
+        "forward": 20,
+        "back": 17
+    }
+}
