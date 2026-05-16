@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=dofbot
-WorkingDirectory=/home/dofbot/dofbot_motion_control
-ExecStart=/usr/bin/python3 /home/dofbot/dofbot_motion_control/dofbot_motion_control_service.py
+WorkingDirectory=/home/dofbot/motion-controlled-dofbot
+ExecStart=/usr/bin/python3 /home/dofbot/motion-controlled-dofbot/dofbot_motion_control_service.py
 Restart=always
 RestartSec=3
 

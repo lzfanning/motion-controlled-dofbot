@@ -26,19 +26,19 @@ This project is unofficial and is not affiliated with or endorsed by Yahboom.
 ### 1. Clone
 ``` bash
 cd /home/dofbot
-git clone <repo-url> dofbot_motion_control
-sudo chown -R dofbot:dofbot dofbot_motion_control
+git clone https://github.com/lzfanning/motion-controlled-dofbot.git
+sudo chown -R dofbot:dofbot motion-controlled-dofbot
 ```
 
 ### 2. Run
 #### Manual
 ``` bash
-cd dofbot_motion_control/motion_receiver
+cd motion-controlled-dofbot/motion_receiver
 python main.py
 ```
 #### Service (includes hotspot)
 ``` bash
-sudo cp dofbot_motion_control/systemd/dofbot-motion-control.service /etc/systemd/system/
+sudo cp motion-controlled-dofbot/systemd/dofbot-motion-control.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now dofbot-motion-control
 ```
