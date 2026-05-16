@@ -1,6 +1,12 @@
 # Motion-Controlled Dofbot
 
-A wearable IMU device that streams angular motion data over Wi-Fi to the [Dofbot](https://github.com/YahboomTechnology/dofbot-Pi), which mirrors the motion in real time and can record and play back animations.
+A wearable IMU device that streams angular motion data over Wi-Fi to the Yahboom Dofbot robotic arm, which mirrors the motion in real time and can record and play back animations.
+
+## Dependency
+
+This project requires Yahboom's `Arm_Lib` Python package, which is included on the official [Yahboom Dofbot Pi image](https://www.yahboom.net/study/Dofbot-Pi). This repository does not include or redistribute `Arm_Lib`.
+
+This project is unofficial and is not affiliated with or endorsed by Yahboom.
 
 ## Network overview
 - Wearable -> Dofbot: UDP, port **56001**
