@@ -26,12 +26,13 @@ _GC_MAX = 10
 
 class MotionSync:
     """Reads IMU motion and synchronizes it to a robot arm."""
-    def __init__(self, host, port, switch_input: SwitchInput, status: StatusIndicator | None = None):
+    def __init__(self, host, port, switch_input: SwitchInput, status: StatusIndicator | None = None, gyro_bias_calibration=None):
         self._imu = IMU()
         self._filter = MahonyFilter()
         self._sender = UDPSender(host, port)
         self._switch_input = switch_input
         self._status = status
+        self._gyro_bias_calibration = gyro_bias_calibration or {}
 
         self._muted = False
         self._recording = False
@@ -101,7 +102,14 @@ class MotionSync:
         self._recalibrate()
 
     def _recalibrate(self):
-        avg_accel = self._imu.calibrate()
+        avg_accel = self._imu.calibrate(
+            good_samples_target=self._gyro_bias_calibration.get("target_good_samples", 100),
+            max_attempts=self._gyro_bias_calibration.get("max_attempts", 600),
+            motion_tolerance=self._gyro_bias_calibration.get("motion_tolerance", 1.0),
+            accel_tolerance=self._gyro_bias_calibration.get("accel_tolerance", 0.10),
+            gyro_tolerance=self._gyro_bias_calibration.get("gyro_tolerance", 5.0),
+            max_consecutive_bad_samples=self._gyro_bias_calibration.get("max_consecutive_bad_samples", 30),
+        )
 
         if avg_accel is not None:
             self._filter.reset_from_accel(*avg_accel)

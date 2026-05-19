@@ -83,17 +83,23 @@ class IMU:
         self._read_reg(_INT1_STATUS1)
         self._write_reg(_INT1_CONFIG0, 0x04)
 
-        print("INT1 cfg:", hex(self._read_reg(_INT1_CONFIG0)[0]),
-              hex(self._read_reg(_INT1_CONFIG2)[0]))
-        print("ACCEL/GYRO cfg:", hex(self._read_reg(_ACCEL_CONFIG0)[0]),
-              hex(self._read_reg(_GYRO_CONFIG0)[0]))
+        print("INT1 cfg:", hex(self._read_reg(_INT1_CONFIG0)[0]), hex(self._read_reg(_INT1_CONFIG2)[0]))
+        print("ACCEL/GYRO cfg:", hex(self._read_reg(_ACCEL_CONFIG0)[0]), hex(self._read_reg(_GYRO_CONFIG0)[0]))
 
-    def calibrate(self, good_samples_target=100, max_attempts=600) -> tuple[float, float, float] | None:
+    def calibrate(self,
+        good_samples_target=100,
+        max_attempts=600,
+        motion_tolerance=1.0,
+        accel_tolerance=0.10,
+        gyro_tolerance=5.0,
+        max_consecutive_bad_samples=30,
+    ) -> tuple[float, float, float] | None:
         print("calibrating gyro bias...")
 
         sx = sy = sz = 0.0
         sax = say = saz = 0.0
         good_count = 0
+        consecutive_bad_samples = 0
 
         for _ in range(max_attempts):
             m = self._read_reg(_ACCEL_DATA, 12)
@@ -117,8 +123,8 @@ class IMU:
             acc_mag = math.sqrt(ax_g * ax_g + ay_g * ay_g + az_g * az_g)
             gyro_mag = math.sqrt(gx_dps * gx_dps + gy_dps * gy_dps + gz_dps * gz_dps)
 
-            accel_ok = abs(acc_mag - 1.0) < 0.10
-            gyro_ok = gyro_mag < 5.0
+            accel_ok = abs(acc_mag - 1.0) < (accel_tolerance * motion_tolerance)
+            gyro_ok = gyro_mag < (gyro_tolerance * motion_tolerance)
 
             if accel_ok and gyro_ok:
                 sx += gx_raw
@@ -130,8 +136,14 @@ class IMU:
                 saz += az_raw
 
                 good_count += 1
+                consecutive_bad_samples = 0
 
                 if good_count >= good_samples_target:
+                    break
+            else:
+                consecutive_bad_samples += 1
+                if consecutive_bad_samples >= max_consecutive_bad_samples:
+                    print("calibration ended early due to motion")
                     break
 
             time.sleep_ms(10)

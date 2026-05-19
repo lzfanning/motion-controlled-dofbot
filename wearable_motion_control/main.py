@@ -37,7 +37,13 @@ async def main():
             sleep_ctrl.enter_sleep()
             continue
 
-        motion = MotionSync(cfg["dofbot_host"], UDP_PORT, switch_input, status)
+        motion = MotionSync(
+            cfg["dofbot_host"],
+            UDP_PORT,
+            switch_input,
+            status,
+            gyro_bias_calibration=cfg.get("gyro_bias_calibration"),
+        )
         status.state = ACTIVE
         await motion.run(wlan=wlan)
 

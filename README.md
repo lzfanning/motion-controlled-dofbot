@@ -126,6 +126,14 @@ The wearable reads `config.json` from its filesystem on boot. The version in thi
         "mode": 18,
         "forward": 20,
         "back": 17
+    },
+	"gyro_bias_calibration": {
+		"target_good_samples": 100,
+        "max_attempts": 600,
+		"motion_tolerance": 1.0,
+		"accel_tolerance": 0.10,
+		"gyro_tolerance": 5.0,
+		"max_consecutive_bad_samples": 30
     }
 }
 ```
@@ -133,6 +141,7 @@ The wearable reads `config.json` from its filesystem on boot. The version in thi
 - **`wifi_ssid` / `wifi_password`**: Network to join. Default is the Dofbot's hotspot.
 - **`dofbot_host`**: IP of the Dofbot. Default is the hotspot gateway. If the Dofbot is on a different network, enter the IP shown on the OLED display.
 - **`switch_pins`**: GPIO pin for each button role. See [Controls](#controls) for what each role does.
+- **`gyro_bias_calibration`**: Settings for correcting non-zero gyro readings while holding still to help reduce drift.
 
 To apply changes, edit `config.json`, upload it, and reset:
 
@@ -142,13 +151,13 @@ mpremote connect /dev/ttyACM0 fs cp config.json :
 
 ## Usage
 
-The wearable boots into IDLE while it joins the Dofbot's hotspot. Once connected, it enters ACTIVE (live motion streaming). Control servo 3 when your forearm is within 22 degrees of the neutral/thumb-up position. Rotate more than 22 degrees clockwise to control servo 4, or more than 22 degrees counterclockwise to control servo 2.
+The wearable boots into IDLE while trying to connect to the Dofbot's network. Once connected, it enters ACTIVE (live motion streaming). For best results, keep still for at least one second right after each unmute to calibrate gyro bias. Control servo 3 when your forearm is within 22 degrees of the neutral/thumb-up position. Rotate more than 22 degrees clockwise to control servo 4, or more than 22 degrees counterclockwise to control servo 2.
 
 ### Status LED
-- **Off**: sleeping
-- **Slow blink**: idle (connecting to Wi-Fi)
-- **Fast blink**: active (live motion streaming)
-- **Very fast blink**: recording
+- **Off**: SLEEPING
+- **Slow blink**: IDLE (connecting to Wi-Fi)
+- **Fast blink**: ACTIVE (live motion streaming)
+- **Very fast blink**: RECORDING
 
 ### Controls
 
@@ -170,10 +179,10 @@ Recorded animations are saved on the Dofbot and persist across reboots.
 
 ## Notes
 - Would wire differently if done again
-	- The pins D0-D6 offer special functionality
-		- Could use just one of those ADC pins for the entire 5-axis directional switch via resistor ladder
-		- They also allow for waking during a PROPER sleep low power mode (not currently supported in the code)
-- Might've been better to use conductive thread for the switch connections
+	- On the XIAO, the pins D0, D1, D2, MTMS, MTDI, MTCK, MTDO (GPIO 0-2 and 4-7) are special ADC and low-power capable pins
+		- Could use just one of them for the entire 5-axis directional switch via resistor ladder
+		- Also for waking during a PROPER sleep low-power mode (not currently supported in the code)
+- Might have been better to use conductive thread for the switch connections
 - The legs of the switch are very delicate and should not be bent
 
 ## TODO

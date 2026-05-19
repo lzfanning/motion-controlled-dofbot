@@ -60,4 +60,3 @@ class WifiManager:
         except Exception:
             pass
         self._wlan.active(False)
-
